@@ -16,12 +16,16 @@
 	],
 	"scripts": {
 		"build": "tsdown",
-		"dev": "tsdown --watch"
+		"dev": "tsdown --watch",
+		"test": "vitest",
+		"ts": "tsc --noEmit",
+		"npm:publish": "pnpm test run && pnpm ts && pnpm build && npm publish"
 	},
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.2",
 		"publint": "^0.3.17",
 		"tsdown": "^0.18.1",
-		"typescript": "^5.9.3"
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.18"
 	}
 }

@@ -11,7 +11,7 @@ interface NestedKeys {
 export type QueryKeys<
 	Path extends string[] | undefined,
 	KeysDef extends NestedKeys,
-> = {
+> = (Path extends undefined ? {} : { _def: Path }) & {
 	[K in keyof KeysDef]: KeysDef[K] extends (...args: infer Args) => infer Return
 		? (
 				...args: Args
@@ -85,5 +85,8 @@ export function createQueryKeys<
 		throw new Error("Query keys definition is required");
 	}
 
-	return recCreateQueryKeys(root, def);
+	return recCreateQueryKeys(root, def) as QueryKeys<
+		Root extends string ? [Root] : undefined,
+		KeysDef
+	>;
 }
