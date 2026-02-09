@@ -16,10 +16,19 @@ yarn add query-keys
 
 ## Usage
 
-Create your query keys object:
+Create your query keys object for your whole app, or for a specific part:
 
 ```ts
 import { createQueryKeys } from "query-keys";
+
+export const queryKeys = createQueryKeys({
+	todos: {
+		all: null, // ["todos", "all"]
+		id: (id: number) => id, // ["todos", "id", <id>]
+	},
+});
+
+// or:
 
 export const todoQueryKeys = createQueryKeys("todos", {
 	all: null, // ["todos", "all"]
@@ -31,7 +40,7 @@ Then, use your keys like:
 
 ```ts
 const { data: allTodos } = useQuery({
-	queryKey: todoQueryKeys.all, // typed!
+	queryKey: queryKeys.todos.all, // typed!
 	queryFn: async () => {
 		// ...
 	},

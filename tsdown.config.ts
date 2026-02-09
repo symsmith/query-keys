@@ -4,4 +4,5 @@ export default defineConfig({
 	exports: true,
 	attw: true,
 	publint: true,
+	tsconfig: "tsconfig.json",
 });

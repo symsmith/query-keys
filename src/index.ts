@@ -1,33 +1,43 @@
 interface NestedKeys {
 	[key: string]:
-		| ((...args: never[]) => unknown)
+		| ((...args: any[]) => unknown)
+		| (string | number)[]
 		| string
 		| number
 		| null
 		| NestedKeys;
 }
 
-export type QueryKeys<Path extends string[], KeysDef extends NestedKeys> = {
+export type QueryKeys<
+	Path extends string[] | undefined,
+	KeysDef extends NestedKeys,
+> = {
 	[K in keyof KeysDef]: KeysDef[K] extends (...args: infer Args) => infer Return
 		? (
 				...args: Args
-			) => [...Path, K, ...(Return extends unknown[] ? Return : [Return])]
+			) => [
+				...(Path extends undefined ? [] : Path),
+				K,
+				...(Return extends unknown[] ? Return : [Return]),
+			]
 		: KeysDef[K] extends NestedKeys
 			? K extends string
-				? QueryKeys<[...Path, K], KeysDef[K]>
+				? QueryKeys<[...(Path extends undefined ? [] : Path), K], KeysDef[K]>
 				: never
-			: KeysDef[K] extends string | number
-				? [...Path, K, KeysDef[K] extends string | number ? KeysDef[K] : never]
-				: KeysDef[K] extends null
-					? [...Path, K]
-					: never;
+			: KeysDef[K] extends (string | number)[]
+				? [...(Path extends undefined ? [] : Path), K, ...KeysDef[K]]
+				: KeysDef[K] extends string | number
+					? [...(Path extends undefined ? [] : Path), K, KeysDef[K]]
+					: KeysDef[K] extends null
+						? [...(Path extends undefined ? [] : Path), K]
+						: never;
 };
 
 function recCreateQueryKeys<Root extends string[], KeysDef extends NestedKeys>(
 	root: Root,
 	definition: KeysDef,
 ) {
-	const result: Record<string, unknown> = { _def: root };
+	const result: Record<string, unknown> = root.length ? { _def: root } : {};
 	for (const key in definition) {
 		if (!Object.hasOwn(definition, key)) continue;
 
@@ -39,7 +49,11 @@ function recCreateQueryKeys<Root extends string[], KeysDef extends NestedKeys>(
 				const ret = element(...args);
 				return [...root, key, ...(Array.isArray(ret) ? ret : [ret])];
 			};
-		} else if (typeof element === "object" && element !== null) {
+		} else if (
+			typeof element === "object" &&
+			!Array.isArray(element) &&
+			element !== null
+		) {
 			result[key] = recCreateQueryKeys([...root, key], element);
 		} else {
 			const lastKey = Array.isArray(element)
@@ -53,9 +67,23 @@ function recCreateQueryKeys<Root extends string[], KeysDef extends NestedKeys>(
 	return result as QueryKeys<Root, KeysDef>;
 }
 
+export function createQueryKeys<KeysDef extends NestedKeys>(
+	definition: KeysDef,
+): QueryKeys<undefined, KeysDef>;
 export function createQueryKeys<
 	Root extends string,
 	KeysDef extends NestedKeys,
->(root: Root, definition: KeysDef) {
-	return recCreateQueryKeys([root], definition);
+>(root: Root, definition: KeysDef): QueryKeys<[Root], KeysDef>;
+export function createQueryKeys<
+	Root extends string,
+	KeysDef extends NestedKeys,
+>(rootOrDef: Root | KeysDef, defOrEmpty?: KeysDef) {
+	const root = typeof rootOrDef === "string" ? [rootOrDef] : [];
+	const def = typeof rootOrDef === "string" ? defOrEmpty : rootOrDef;
+
+	if (def === undefined) {
+		throw new Error("Query keys definition is required");
+	}
+
+	return recCreateQueryKeys(root, def);
 }
