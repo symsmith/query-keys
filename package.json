@@ -1,0 +1,27 @@
+{
+	"name": "query-keys",
+	"type": "module",
+	"version": "0.0.2",
+	"private": false,
+	"description": "A fully typed, simple utility for your query keys.",
+	"exports": {
+		".": "./dist/index.mjs",
+		"./package.json": "./package.json"
+	},
+	"main": "./dist/index.mjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch"
+	},
+	"devDependencies": {
+		"@arethetypeswrong/core": "^0.18.2",
+		"publint": "^0.3.17",
+		"tsdown": "^0.18.1",
+		"typescript": "^5.9.3"
+	}
+}
