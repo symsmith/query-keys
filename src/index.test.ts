@@ -84,9 +84,7 @@ describe("createQueryKeys", () => {
 
 	it("throws error when definition is missing", () => {
 		// @ts-expect-error testing error case
-		expect(() => createQueryKeys(undefined)).toThrow(
-			"Query keys definition is required",
-		);
+		expect(() => createQueryKeys(undefined)).toThrow("Query keys definition is required");
 	});
 
 	it("creates deeply nested query keys", () => {
@@ -100,22 +98,12 @@ describe("createQueryKeys", () => {
 			},
 		});
 
-		expect(keys.api.users.active.byId("100")).toEqual([
-			"api",
-			"users",
-			"active",
-			"byId",
-			"100",
-		]);
+		expect(keys.api.users.active.byId("100")).toEqual(["api", "users", "active", "byId", "100"]);
 	});
 
 	it("creates query keys with multiple function parameters", () => {
 		const keys = createQueryKeys({
-			search: (query: string, page: number, limit: number) => [
-				query,
-				page,
-				limit,
-			],
+			search: (query: string, page: number, limit: number) => [query, page, limit],
 		});
 
 		expect(keys.search("test", 1, 20)).toEqual(["search", "test", 1, 20]);
@@ -136,12 +124,7 @@ describe("createQueryKeys", () => {
 		expect(keys.posts.all).toEqual(["posts", "all"]);
 		expect(keys.posts.byId(42)).toEqual(["posts", "byId", 42]);
 		expect(keys.posts.comments.all).toEqual(["posts", "comments", "all"]);
-		expect(keys.posts.comments.byPostId(42)).toEqual([
-			"posts",
-			"comments",
-			"byPostId",
-			42,
-		]);
+		expect(keys.posts.comments.byPostId(42)).toEqual(["posts", "comments", "byPostId", 42]);
 	});
 
 	it("creates query keys with empty array", () => {
@@ -162,17 +145,10 @@ describe("createQueryKeys", () => {
 
 	it("creates query keys with function returning object properties", () => {
 		const keys = createQueryKeys({
-			filter: (params: { status: string; type: string }) => [
-				params.status,
-				params.type,
-			],
+			filter: (params: { status: string; type: string }) => [params.status, params.type],
 		});
 
-		expect(keys.filter({ status: "active", type: "user" })).toEqual([
-			"filter",
-			"active",
-			"user",
-		]);
+		expect(keys.filter({ status: "active", type: "user" })).toEqual(["filter", "active", "user"]);
 	});
 
 	it("creates query keys with nested functions and arrays", () => {
@@ -229,12 +205,7 @@ describe("createQueryKeys", () => {
 		});
 
 		expect(keys.users.all).toEqual(["app", "users", "all"]);
-		expect(keys.users.detail("user-1")).toEqual([
-			"app",
-			"users",
-			"detail",
-			"user-1",
-		]);
+		expect(keys.users.detail("user-1")).toEqual(["app", "users", "detail", "user-1"]);
 		expect(keys.settings.theme).toEqual(["app", "settings", "theme", "dark"]);
 	});
 

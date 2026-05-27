@@ -59,7 +59,7 @@ Use a function to get a dynamic query key depending on an external parameter.
 
 ## Credit
 
-The API is very inspired by [@lukemorales/query-key-factory](https://npmx.dev/package/@lukemorales/query-key-factory), but with Tanstack Query's [Options API](https://tkdodo.eu/blog/the-query-options-api) I do not see the need for such a powerhouse anymore.
+The API is very much inspired by [@lukemorales/query-key-factory](https://npmx.dev/package/@lukemorales/query-key-factory), but with Tanstack Query's [Options API](https://tkdodo.eu/blog/the-query-options-api) I do not see the need for such a powerhouse anymore.
 
 ## License
 

@@ -49,14 +49,10 @@ function recCreateQueryKeys<Root extends string[], KeysDef extends NestedKeys>(
 				const ret = element(...args);
 				return [...root, key, ...(Array.isArray(ret) ? ret : [ret])];
 			};
-		} else if (
-			typeof element === "object" &&
-			!Array.isArray(element) &&
-			element !== null
-		) {
+		} else if (typeof element === "object" && !Array.isArray(element) && element !== null) {
 			result[key] = recCreateQueryKeys([...root, key], element);
 		} else {
-			const lastKey = Array.isArray(element)
+			const lastKey: unknown[] = Array.isArray(element)
 				? element
 				: element === null
 					? []
@@ -67,17 +63,47 @@ function recCreateQueryKeys<Root extends string[], KeysDef extends NestedKeys>(
 	return result as QueryKeys<Root, KeysDef>;
 }
 
+/**
+ * Creates a structured set of query keys based on the provided definition.
+ *
+ * ```ts
+ *	const keys = createQueryKeys({
+ *		users: {
+ *			all: null,
+ *			byId: (id: string) => id,
+ *		},
+ *	});
+ *
+ * console.log(keys.users.all); // Output: ["users", "all"]
+ * console.log(keys.users.byId("123")); // Output: ["users", "byId", "123"]
+ * ```
+ */
 export function createQueryKeys<KeysDef extends NestedKeys>(
 	definition: KeysDef,
 ): QueryKeys<undefined, KeysDef>;
-export function createQueryKeys<
-	Root extends string,
-	KeysDef extends NestedKeys,
->(root: Root, definition: KeysDef): QueryKeys<[Root], KeysDef>;
-export function createQueryKeys<
-	Root extends string,
-	KeysDef extends NestedKeys,
->(rootOrDef: Root | KeysDef, defOrEmpty?: KeysDef) {
+/**
+ * Creates a structured set of query keys with a root prefix based on the provided definition.
+ *
+ * ```ts
+ *	const apiKeys = createQueryKeys("api", {
+ *		users: {
+ *			all: null,
+ *			byId: (id: string) => id,
+ *		},
+ *	});
+ *
+ * console.log(apiKeys.users.all); // Output: ["api", "users", "all"]
+ * console.log(apiKeys.users.byId("123")); // Output: ["api", "users", "byId", "123"]
+ * ```
+ */
+export function createQueryKeys<Root extends string, KeysDef extends NestedKeys>(
+	root: Root,
+	definition: KeysDef,
+): QueryKeys<[Root], KeysDef>;
+export function createQueryKeys<Root extends string, KeysDef extends NestedKeys>(
+	rootOrDef: Root | KeysDef,
+	defOrEmpty?: KeysDef,
+) {
 	const root = typeof rootOrDef === "string" ? [rootOrDef] : [];
 	const def = typeof rootOrDef === "string" ? defOrEmpty : rootOrDef;
 
