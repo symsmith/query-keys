@@ -8,30 +8,37 @@ interface NestedKeys {
 		| NestedKeys;
 }
 
+type Prefix<Path extends string[] | undefined> = Path extends undefined ? [] : Path;
+
 export type QueryKeys<
 	Path extends string[] | undefined,
 	KeysDef extends NestedKeys,
 > = (Path extends undefined ? {} : { _def: Path }) & {
 	[K in keyof KeysDef]: KeysDef[K] extends (...args: infer Args) => infer Return
-		? (
+		? ((
 				...args: Args
-			) => [
-				...(Path extends undefined ? [] : Path),
-				K,
-				...(Return extends unknown[] ? Return : [Return]),
-			]
+			) => [...Prefix<Path>, K, ...(Return extends unknown[] ? Return : [Return])]) & {
+				_def: [...Prefix<Path>, K];
+			}
 		: KeysDef[K] extends NestedKeys
 			? K extends string
-				? QueryKeys<[...(Path extends undefined ? [] : Path), K], KeysDef[K]>
+				? QueryKeys<[...Prefix<Path>, K], KeysDef[K]>
 				: never
 			: KeysDef[K] extends (string | number)[]
-				? [...(Path extends undefined ? [] : Path), K, ...KeysDef[K]]
+				? [...Prefix<Path>, K, ...KeysDef[K]] & { _def: [...Prefix<Path>, K] }
 				: KeysDef[K] extends string | number
-					? [...(Path extends undefined ? [] : Path), K, KeysDef[K]]
+					? [...Prefix<Path>, K, KeysDef[K]] & { _def: [...Prefix<Path>, K] }
 					: KeysDef[K] extends null
-						? [...(Path extends undefined ? [] : Path), K]
+						? [...Prefix<Path>, K] & { _def: [...Prefix<Path>, K] }
 						: never;
 };
+
+/**
+ * `_def` is non-enumerable so leaf keys keep hashing and serializing as plain arrays.
+ */
+function withDef<T extends object>(value: T, def: string[]) {
+	return Object.defineProperty(value, "_def", { value: def, enumerable: false });
+}
 
 function recCreateQueryKeys<Root extends string[], KeysDef extends NestedKeys>(
 	root: Root,
@@ -42,22 +49,23 @@ function recCreateQueryKeys<Root extends string[], KeysDef extends NestedKeys>(
 		if (!Object.hasOwn(definition, key)) continue;
 
 		const element = definition[key];
+		const def = [...root, key];
 
 		if (typeof element === "function") {
 			// @ts-expect-error complex type inference not working here
-			result[key] = (...args: Parameters<typeof element>) => {
+			result[key] = withDef((...args: Parameters<typeof element>) => {
 				const ret = element(...args);
 				return [...root, key, ...(Array.isArray(ret) ? ret : [ret])];
-			};
+			}, def);
 		} else if (typeof element === "object" && !Array.isArray(element) && element !== null) {
-			result[key] = recCreateQueryKeys([...root, key], element);
+			result[key] = recCreateQueryKeys(def, element);
 		} else {
 			const lastKey: unknown[] = Array.isArray(element)
 				? element
 				: element === null
 					? []
 					: [element];
-			result[key] = [...root, key, ...lastKey];
+			result[key] = withDef([...root, key, ...lastKey], def);
 		}
 	}
 	return result as QueryKeys<Root, KeysDef>;
@@ -76,6 +84,9 @@ function recCreateQueryKeys<Root extends string[], KeysDef extends NestedKeys>(
  *
  * console.log(keys.users.all); // Output: ["users", "all"]
  * console.log(keys.users.byId("123")); // Output: ["users", "byId", "123"]
+ * console.log(keys.users._def); // Output: ["users"]
+ * console.log(keys.users.all._def); // Output: ["users", "all"]
+ * console.log(keys.users.byId._def); // Output: ["users", "byId"]
  * ```
  */
 export function createQueryKeys<KeysDef extends NestedKeys>(
@@ -94,6 +105,9 @@ export function createQueryKeys<KeysDef extends NestedKeys>(
  *
  * console.log(apiKeys.users.all); // Output: ["api", "users", "all"]
  * console.log(apiKeys.users.byId("123")); // Output: ["api", "users", "byId", "123"]
+ * console.log(apiKeys.users._def); // Output: ["api", "users"]
+ * console.log(apiKeys.users.all._def); // Output: ["api", "users", "all"]
+ * console.log(apiKeys.users.byId._def); // Output: ["api", "users", "byId"]
  * ```
  */
 export function createQueryKeys<Root extends string, KeysDef extends NestedKeys>(

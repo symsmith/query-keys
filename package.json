@@ -23,8 +23,6 @@
 		"dist"
 	],
 	"type": "module",
-	"main": "./dist/index.mjs",
-	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.mts",
 	"exports": {
 		".": "./dist/index.mjs",
@@ -42,13 +40,13 @@
 		"npm:publish": "pnpm check && npm publish"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/core": "^0.18.2",
-		"oxfmt": "^0.28.0",
-		"oxlint": "^1.43.0",
-		"oxlint-tsgolint": "^0.11.5",
-		"publint": "^0.3.17",
-		"tsdown": "^0.18.1",
-		"typescript": "^5.9.3",
-		"vitest": "^4.0.18"
+		"@arethetypeswrong/core": "^0.18.5",
+		"oxfmt": "^0.68.0",
+		"oxlint": "^1.83.0",
+		"oxlint-tsgolint": "^7.0.2001",
+		"publint": "^0.3.24",
+		"tsdown": "^0.23.0",
+		"typescript": "^7.0.2",
+		"vitest": "^5.0.1"
 	}
 }

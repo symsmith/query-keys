@@ -267,4 +267,73 @@ describe("createQueryKeys", () => {
 		expect(keys.users._def).toEqual(["root", "users"]);
 		expect(keys.users.active._def).toEqual(["root", "users", "active"]);
 	});
+
+	it("adds _def property to null leaf keys", () => {
+		const keys = createQueryKeys({
+			users: {
+				all: null,
+			},
+		});
+
+		expect(keys.users.all._def).toEqual(["users", "all"]);
+	});
+
+	it("adds _def property to function leaf keys", () => {
+		const keys = createQueryKeys({
+			users: {
+				byId: (id: string) => id,
+			},
+		});
+
+		expect(keys.users.byId._def).toEqual(["users", "byId"]);
+	});
+
+	it("adds _def property to leaf keys with root prefix", () => {
+		const apiKeys = createQueryKeys("api", {
+			users: {
+				all: null,
+				byId: (id: string) => id,
+			},
+		});
+
+		expect(apiKeys.users.all._def).toEqual(["api", "users", "all"]);
+		expect(apiKeys.users.byId._def).toEqual(["api", "users", "byId"]);
+	});
+
+	it("adds _def property to string, number and array leaf keys", () => {
+		const keys = createQueryKeys("app", {
+			settings: {
+				theme: "dark",
+				version: 1,
+				filters: ["active", "pending"],
+			},
+		});
+
+		expect(keys.settings.theme).toEqual(["app", "settings", "theme", "dark"]);
+		expect(keys.settings.theme._def).toEqual(["app", "settings", "theme"]);
+		expect(keys.settings.version._def).toEqual(["app", "settings", "version"]);
+		expect(keys.settings.filters._def).toEqual(["app", "settings", "filters"]);
+	});
+
+	it("adds _def property to top level leaf keys", () => {
+		const keys = createQueryKeys({
+			all: null,
+			byId: (id: string) => id,
+		});
+
+		expect(keys.all._def).toEqual(["all"]);
+		expect(keys.byId._def).toEqual(["byId"]);
+	});
+
+	it("keeps leaf _def out of serialization", () => {
+		const keys = createQueryKeys("api", {
+			users: {
+				all: null,
+			},
+		});
+
+		expect(JSON.stringify(keys.users.all)).toBe('["api","users","all"]');
+		expect(Object.keys(keys.users.all)).toEqual(["0", "1", "2"]);
+		expect([...keys.users.all]).toEqual(["api", "users", "all"]);
+	});
 });
